@@ -1,0 +1,150 @@
+import React from "react";
+import { Button, Form, Input, Spinner } from "reactstrap";
+
+import ProductService from "../services/product-service";
+
+class ProductForm extends React.Component {
+  state = {
+    product: {
+      id: null,
+      name: "",
+      code: "",
+      description: "",
+      price: 0,
+    },
+    loading: false,
+  };
+
+  componentDidMount() {
+    this.loadProduct();
+  }
+
+  loadProduct = () => {
+    if (this.props.match.params.id !== undefined) {
+      this.setState({
+        loading: true,
+      });
+
+      ProductService.getProductById(this.props.match.params.id)
+        .then((product) => {
+          this.setState({
+            product,
+            loading: false,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+          this.setState({
+            loading: false,
+          });
+        });
+    }
+  };
+
+  handleChange = (e) => {
+    const { name, value } = e.target;
+
+    this.setState({
+      product: {
+        ...this.state.product,
+        [name]: value,
+      },
+    });
+  };
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (this.state.product.id !== null) {
+      ProductService.updateProduct(this.state.product)
+        .then(() => {
+          this.props.history.push("/products");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      ProductService.createProduct(this.state.product)
+        .then(() => {
+          this.props.history.push("/products");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  };
+
+  render() {
+    const { product, loading } = this.state;
+
+    return (
+      <div className="container">
+        <div className="row">
+          <div className="col-md-12">
+            <h1>Formulário de produto</h1>
+          </div>
+        </div>
+
+        <div className="row">
+          <div className="col-md-6">
+            <Form>
+              <Form.Group>
+                <Form.Label>Nome</Form.Label>
+                <Input
+                  type="text"
+                  name="name"
+                  value={product.name}
+                  onChange={this.handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Código</Form.Label>
+                <Input
+                  type="text"
+                  name="code"
+                  value={product.code}
+                  onChange={this.handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Descrição</Form.Label>
+                <Input
+                  type="text"
+                  name="description"
+                  value={product.description}
+                  onChange={this.handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Preço</Form.Label>
+                <Input
+                  type="number"
+                  name="price"
+                  value={product.price}
+                  onChange={this.handleChange}
+                />
+              </Form.Group>
+            </Form>
+          </div>
+        </div>
+
+        <div className="row">
+          <div className="col-md-12">
+            <Button
+              type="submit"
+              disabled={loading}
+              onClick={this.handleSubmit}
+            >
+              {loading ? "Carregando..." : "Salvar"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default ProductForm;
